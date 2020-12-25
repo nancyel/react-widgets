@@ -1,70 +1,125 @@
-# Getting Started with Create React App
+# React Widgets app
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> Another react app, to get a better idea of how React works
 
-## Available Scripts
+### Learning points
 
-In the project directory, you can run:
+- 10 Hooks (`useSomething`)
 
-### `yarn start`
+  - useState, useEffect, useContext
+    - useState: a function that lets you use state in a functional component
+    - useEffect: a function similar to lifecycle methods
+  - useReducer, useCallback, useMemo
+  - useRef, useImperativeHandle, useLayoutEffect
+  - useDebugValue
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- Functional components (FC) don't have access to lifecycle methods that are available to class components.
+- But FC has the **useEffect Hook**, and it can be configured to handle 3 different possible scenarios:
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+  ```
+  when:
+    case1: a component is first rendered to the screen
+    case2: a component is first rendered && rerenders
+    case3: a component is first rendered && rerenders && some piece of data has changed
+  ```
 
-### `yarn test`
+  The same thing is implemented in the code:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+  ```
+  useEffect(function, when to call this function);
+  ```
 
-### `yarn build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### useEffect in detail
+---
+Scenario: How to implement a search function to be invoked, only when the condition is met? The condition being:
+- when the user input in the search box contains a term, and 
+- it stays the same for a while (~500ms)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Otherwise, if we simply use the onInputChange callback, an API call will be made every time the input text is updated. Now if we use a timer, how can we reset the timer every time the input text is updated?
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `yarn eject`
+1. Function
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- Note that async-await syntax cannot be used directly in the first argument of the useEffect function. Three possible approaches include:
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+  - Create a helper function and invoke it (recommended)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+    ```js
+    const [results, setResults] = useState([]);
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+    useEffect(() => {
+      const helper = async () => {
+        const { data } = await axios.get("endpoint", "options");
+        setResults(data.item);
+      };
 
-## Learn More
+      helper();
+    }, []);
+    ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+  - Invoke the above function as IFFE
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+  - Use Promise-based syntax
 
-### Code Splitting
+- Can call a return function, which is invoked after rerender (not invoked during initial render). Note that this return function is called prior to the provided function in the first argument.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+  ```js
+  useEffect(() => {
+    // set up a timer
+    const timeoutId = setTimeout(() => {
+      if (term) {
+        search();
+      }
+    }, 500);
 
-### Analyzing the Bundle Size
+    // when the term changes, cancel the timer
+    // using an identifier emitted from setTimeout function
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [term]);
+  ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+2. When to call this function
 
-### Making a Progressive Web App
+- the second argument is called a dependency array. The rule says all the props and states that are being called inside useEffect should be listed out in this array.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+  ```js
+  useEffect(() => {
+    if (term) {
+      console.log("test");
+    }
+  }, [term]);
+  ```
 
-### Advanced Configuration
+  - case1: an empty array ([])
+  - case2: no array (this is rarely the case)
+  - case3: some values in the array ([term])
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-### Deployment
+### useState in detail
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
+Scenario: how to open and close a dropdown menu?
+This is automatically handled by [Bootstrap](https://getbootstrap.com/docs/4.0/components/dropdowns/), but how would you do the same thing in the world of React? By making use of `useState`, template literals, and ternary operators.
+---
 
-### `yarn build` fails to minify
+```js
+const [open, setOpen] = useState(false);
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+<div className={`menu ${open ? 'visible transition' : ''}`}>
+  {renderedOptions}
+</div>
+```
+
+
+### useRef in detail
+
+---
+Scenario: how to close the dropdown menu when clicking outside the dropdown?
+(Not just the top div part, or the JSX element created by the Dropdown component)
+---
+
+useRef allows us to get direct access to a DOM element. If we can get a reference to a top-level element in Dropdown component, then we can differentiate it from the rest of the elements in the `document.body`.
