@@ -147,3 +147,7 @@ return (
 ```
 
 Hard reload (or full page reload) causes unnecessary network traffic. A better approach to navigation would be adding another component (called `Link`) that emits a navigation event on click, then using a piece of state that tracks the current pathname and updating the url accordingly.
+
+### Reference
+
+React tutorial from [here](https://www.udemy.com/course/react-redux/learn/lecture/20787442#overview)
