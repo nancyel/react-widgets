@@ -29,11 +29,13 @@
   useEffect(function, when to call this function);
   ```
 
-
 ### useEffect in detail
+
 ---
+
 Scenario: How to implement a search function to be invoked, only when the condition is met? The condition being:
-- when the user input in the search box contains a term, and 
+
+- when the user input in the search box contains a term, and
 - it stays the same for a while (~500ms)
 
 Otherwise, if we simply use the onInputChange callback, an API call will be made every time the input text is updated. Now if we use a timer, how can we reset the timer every time the input text is updated?
@@ -98,28 +100,50 @@ Otherwise, if we simply use the onInputChange callback, an API call will be made
   - case2: no array (this is rarely the case)
   - case3: some values in the array ([term])
 
-
 ### useState in detail
 
 ---
+
 Scenario: how to open and close a dropdown menu?
 This is automatically handled by [Bootstrap](https://getbootstrap.com/docs/4.0/components/dropdowns/), but how would you do the same thing in the world of React? By making use of `useState`, template literals, and ternary operators.
+
 ---
 
 ```js
 const [open, setOpen] = useState(false);
 
-<div className={`menu ${open ? 'visible transition' : ''}`}>
+<div className={`menu ${open ? "visible transition" : ""}`}>
   {renderedOptions}
-</div>
+</div>;
 ```
-
 
 ### useRef in detail
 
 ---
+
 Scenario: how to close the dropdown menu when clicking outside the dropdown?
 (Not just the top div part, or the JSX element created by the Dropdown component)
+
 ---
 
 useRef allows us to get direct access to a DOM element. If we can get a reference to a top-level element in Dropdown component, then we can differentiate it from the rest of the elements in the `document.body`.
+
+<br />
+### Navigation with Route component
+Whenever we provide one JSX inside of another JSX tag, the inner element is provided to the outer one as a prop called `children`. The following implementation works but not ideal, as clicking each route would result in completely reloading the index.js file.
+
+```js
+return (
+  <div>
+    <Header />
+    <Route path="/">
+      <Accordion items={items} />
+    </Route>
+    <Route path="/list">
+      <Search />
+    </Route>
+  </div>
+);
+```
+
+Hard reload (or full page reload) causes unnecessary network traffic. A better approach to navigation would be adding another component (called `Link`) that emits a navigation event on click, then using a piece of state that tracks the current pathname and updating the url accordingly.
